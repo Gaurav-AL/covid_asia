@@ -1,0 +1,1 @@
+DOWNLOAD_SOURCES_GITHUB_URL = "'https://raw.githubusercontent.com/Gaurav-AL/covid_asia/main/sources.csv.xlsx'"
