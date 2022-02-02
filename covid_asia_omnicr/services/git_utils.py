@@ -1,6 +1,6 @@
 from lib2to3.pgen2 import token
 from github import Github
-from . import const
+from covid_asia_omnicr.services import const
 import os
 import json
 import urllib.request
@@ -27,4 +27,7 @@ def SourcePath():
     source_csv.write(response.read())
     source_csv.close()
     return path+'/sources'
+
+
+repo.create_file("test.txt","Created new file through API","22-jan-2022", branch="main")
         
