@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-2fgg24#l&t68#3w9z9de$333glh%k=fz8!@pnor%hh*x4lzls(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost']
 
 
 # Application definition
@@ -38,7 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'covid_asia_omnicr',
-    'rest_framework'
+    'rest_framework',
+    'covid_asia_omnicr.services'
 ]
 
 MIDDLEWARE = [
