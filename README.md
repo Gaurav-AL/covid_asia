@@ -9,5 +9,5 @@ Create Folder for country and for each date store  the data..
 github api documentation: https://pygithub.readthedocs.io/en/latest/introduction.html
 
 Date 
-  Country
-    Data
+----Country
+------Data
