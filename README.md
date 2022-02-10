@@ -13,4 +13,4 @@ Date
 ------Data
 
 
-gitpython....github commit, add through python script
+gitpython.... https://gitpython.readthedocs.io/en/stable/tutorial.html .github commit, add through python script
