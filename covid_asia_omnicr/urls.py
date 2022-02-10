@@ -1,5 +1,9 @@
+from statistics import covariance
 from django.contrib import admin
 from django.urls import path,include
+
+from covid_asia_omnicr.views import Result
 urlpatterns = [
-    path('admin/', admin.site.urls) 
+    path('cases',Result.as_view()),
+
 ]
