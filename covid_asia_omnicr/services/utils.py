@@ -1,6 +1,8 @@
 from bs4 import BeautifulSoup as bs
 import requests
 import re
+import csv
+import pandas as pd
 
 
 def getHTMLDoc(url):
@@ -43,7 +45,11 @@ def getIExtractedData(country,url):
     return {country:{"ConfirmedCases":cc,"Deaths":dt,"RecoveredCases":rc}}
     
 
+def read_csv_to_dict_list(csv_file_path):
+        
+    with open(csv_file_path,mode = 'r') as source:
+        data = pd.read_csv(source)
+        print(data)
+        
+read_csv_to_dict_list('G:\covid_asia\covid_asia_omnicr\services\sources')
 
-
-
-print(getIExtractedData("India","https://www.mohfw.gov.in/"))
