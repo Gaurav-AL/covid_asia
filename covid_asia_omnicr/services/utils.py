@@ -1,8 +1,7 @@
 from bs4 import BeautifulSoup as bs
 import requests
 import re
-import csv
-from covid_asia_omnicr.services import git_utils
+from covid_asia_omnicr.services import const
 
 
 def getHTMLDoc(url):
@@ -45,12 +44,8 @@ def getIExtractedData(country,url):
     return {country:{"ConfirmedCases":cc,"Deaths":dt,"RecoveredCases":rc}}
     
 
-def read_csv_to_dict_list(csv_file_path):
-        
-    with open(csv_file_path,mode = 'r') as source:
-        reader = csv.reader(source)
-        for rows in reader:
-            print(rows)
-        
-read_csv_to_dict_list(git_utils.SourcePath())
+def getdata(dict):
+    for key,value in dict.items():
+        print(key,value)
+print(const.source)
 
