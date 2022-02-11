@@ -47,5 +47,6 @@ def getIExtractedData(country,url):
 def getdata(dict):
     for key,value in dict.items():
         print(key,value)
+    
 print(const.source)
 
