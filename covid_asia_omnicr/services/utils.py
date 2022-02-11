@@ -2,7 +2,7 @@ from bs4 import BeautifulSoup as bs
 import requests
 import re
 import csv
-import pandas as pd
+from covid_asia_omnicr.services import git_utils
 
 
 def getHTMLDoc(url):
@@ -48,8 +48,9 @@ def getIExtractedData(country,url):
 def read_csv_to_dict_list(csv_file_path):
         
     with open(csv_file_path,mode = 'r') as source:
-        data = pd.read_csv(source)
-        print(data)
+        reader = csv.reader(source)
+        for rows in reader:
+            print(rows)
         
-read_csv_to_dict_list('G:\covid_asia\covid_asia_omnicr\services\sources')
+read_csv_to_dict_list(git_utils.SourcePath())
 
