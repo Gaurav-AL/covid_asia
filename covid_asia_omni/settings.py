@@ -39,7 +39,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'covid_asia_omnicr',
     'rest_framework',
-    'covid_asia_omnicr.services'
 ]
 
 MIDDLEWARE = [

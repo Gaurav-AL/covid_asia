@@ -4,6 +4,7 @@ import re
 from covid_asia_omnicr.models import CumulativeStats 
 from covid_asia_omnicr.models import Countries
 from covid_asia_omnicr.models import DeltaStats
+from django.db.models import Q
 
 
 source = {
@@ -127,20 +128,28 @@ def getdata():
 
 
 def updateCountries(Source):
-    for key,value in Source.item():
+    for key,value in Source.items():
         update = Countries(aid = key, Country = value["Country"])
         update.save()       
 
-updateCountries(source)
-    
-# def updatetable(data):
-#     k = 0
-#     for key,value in data.items():
-#         cumulative = cs(aid = k, Confirmed = value[f"{key}"]["ConfirmedCases"], Recovered = value[f"{key}"]["RecoveredCases"],Deaths = value[f"{key}"]["Deaths"])
-#         cumulative.save()
-#         k += 1
 
-# updatetable(getdata())
+    
+def updateCumulativeStats(data):
+    k = 0
+    for key,value in data.items():
+        index = Countries.objects.get(aid = k)
+        cumulative = CumulativeStats(aid = index, Confirmed = value[f"{key}"]["ConfirmedCases"], Recovered = value[f"{key}"]["RecoveredCases"],Deaths = value[f"{key}"]["Deaths"])
+        cumulative.save()
+        k += 1
+
+# updateCumulativeStats(getdata())
+
+def updateDeltaStats(data):
+    k = 0
+    for key,value in data.items():
+        index = Countries.objects.get(Q(aid = k))
+        earlier = CumulativeStats.objects.filter(Q(aid = k))
+
 
 
 
