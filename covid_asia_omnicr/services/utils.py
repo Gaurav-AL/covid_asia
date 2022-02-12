@@ -1,7 +1,9 @@
 from bs4 import BeautifulSoup as bs
 import requests
 import re
-from covid_asia_omnicr.services import const
+from covid_asia_omnicr.models import CumulativeStats 
+from covid_asia_omnicr.models import Countries
+from covid_asia_omnicr.models import DeltaStats
 
 
 source = {
@@ -36,37 +38,37 @@ source = {
         "source" : "https://www.worldometers.info/coronavirus/country/Japan/",
         "type" : "HTML"
         },
-        6 : {
+        5 : {
         "Country" : "Indonesia",
         "Country_Code" : "IDO",
         "source" : "https://www.worldometers.info/coronavirus/country/Indonesia/",
         "type" : "HTML"
         },
-        7 : {
+        6 : {
         "Country" : "Bangladesh",
         "Country_Code" : "BNG",
         "source" : "https://www.worldometers.info/coronavirus/country/bangladesh/",
         "type" : "HTML"
         },
-        8 : {
+        7 : {
         "Country" : "Turkey",
         "Country_Code" : "TY",
         "source" : "https://www.worldometers.info/coronavirus/country/turkey/",
         "type" : "HTML"
         },
-        9 : {
+        8 : {
         "Country" : "Nepal",
         "Country_Code" : "NPL",
         "source" : "https://www.worldometers.info/coronavirus/country/nepal/",
         "type" : "HTML"
         },
-        10 : {
+        9 : {
         "Country" : "Malaysia",
         "Country_Code" : "ML",
         "source" : "https://www.worldometers.info/coronavirus/country/malaysia/",
         "type" : "HTML"
         },
-        11 : {
+        10 : {
         "Country" : "Qatar",
         "Country_Code" : "QTR",
         "source" : "https://www.worldometers.info/coronavirus/country/qatar/",
@@ -115,14 +117,31 @@ def getIExtractedData(country,url):
     
 
 def getdata():
-    data = []
+    data = {}
     for key,value in source.items():
         if(value['Country'] == "India"):
-            data.append(getIExtractedData("India",value['source']))
+            data[value["Country"]] = getIExtractedData(value["Country"],value["source"])
         else:
-            data.append(getWExtractedData(value["Country"],value['source']))
+            data[value["Country"]] = getWExtractedData(value["Country"],value['source'])
     return data
-        
+
+
+def updateCountries(Source):
+    for key,value in Source.item():
+        update = Countries(aid = key, Country = value["Country"])
+        update.save()       
+
+updateCountries(source)
     
-print(getdata())
+# def updatetable(data):
+#     k = 0
+#     for key,value in data.items():
+#         cumulative = cs(aid = k, Confirmed = value[f"{key}"]["ConfirmedCases"], Recovered = value[f"{key}"]["RecoveredCases"],Deaths = value[f"{key}"]["Deaths"])
+#         cumulative.save()
+#         k += 1
+
+# updatetable(getdata())
+
+
+
 
