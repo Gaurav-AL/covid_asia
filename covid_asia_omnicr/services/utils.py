@@ -4,6 +4,76 @@ import re
 from covid_asia_omnicr.services import const
 
 
+source = {
+        0:{
+        "Country" : "India",
+        "Country_Code" : "IND",
+        "source" : "https://www.mohfw.gov.in/",
+        "type" : "HTML"
+        },
+
+        1:{
+        "Country" : "China",
+        "Country_Code" : "CHN",
+        "source" : "https://www.worldometers.info/coronavirus/country/china/",
+        "type" : "HTML"
+        },
+        2: {
+        "Country" : "Pakistan",
+        "Country_Code" : "PAK",
+        "source" : "https://www.worldometers.info/coronavirus/country/Pakistan/",
+        "type" : "HTML"
+        },
+        3 :{
+        "Country" : "Bhutan",
+        "Country_Code" : "BHU",
+        "source" : "https://www.worldometers.info/coronavirus/country/bhutan/",
+        "type" : "HTML"
+        },
+        4 : {
+        "Country" : "Japan",
+        "Country_Code" : "JPN",
+        "source" : "https://www.worldometers.info/coronavirus/country/Japan/",
+        "type" : "HTML"
+        },
+        6 : {
+        "Country" : "Indonesia",
+        "Country_Code" : "IDO",
+        "source" : "https://www.worldometers.info/coronavirus/country/Indonesia/",
+        "type" : "HTML"
+        },
+        7 : {
+        "Country" : "Bangladesh",
+        "Country_Code" : "BNG",
+        "source" : "https://www.worldometers.info/coronavirus/country/bangladesh/",
+        "type" : "HTML"
+        },
+        8 : {
+        "Country" : "Turkey",
+        "Country_Code" : "TY",
+        "source" : "https://www.worldometers.info/coronavirus/country/turkey/",
+        "type" : "HTML"
+        },
+        9 : {
+        "Country" : "Nepal",
+        "Country_Code" : "NPL",
+        "source" : "https://www.worldometers.info/coronavirus/country/nepal/",
+        "type" : "HTML"
+        },
+        10 : {
+        "Country" : "Malaysia",
+        "Country_Code" : "ML",
+        "source" : "https://www.worldometers.info/coronavirus/country/malaysia/",
+        "type" : "HTML"
+        },
+        11 : {
+        "Country" : "Qatar",
+        "Country_Code" : "QTR",
+        "source" : "https://www.worldometers.info/coronavirus/country/qatar/",
+        "type" : "HTML"
+        },
+}
+
 def getHTMLDoc(url):
     response = requests.get(url)
     return response.text
@@ -44,9 +114,15 @@ def getIExtractedData(country,url):
     return {country:{"ConfirmedCases":cc,"Deaths":dt,"RecoveredCases":rc}}
     
 
-def getdata(dict):
-    for key,value in dict.items():
-        print(key,value)
+def getdata():
+    data = []
+    for key,value in source.items():
+        if(value['Country'] == "India"):
+            data.append(getIExtractedData("India",value['source']))
+        else:
+            data.append(getWExtractedData(value["Country"],value['source']))
+    return data
+        
     
-print(const.source)
+print(getdata())
 
