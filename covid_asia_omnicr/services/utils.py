@@ -132,23 +132,46 @@ def updateCountries(Source):
         update = Countries(aid = key, Country = value["Country"])
         update.save()       
 
-
+# updateCountries(source)
     
 def updateCumulativeStats(data):
     k = 0
     for key,value in data.items():
-        index = Countries.objects.get(aid = k)
-        cumulative = CumulativeStats(aid = index, Confirmed = value[f"{key}"]["ConfirmedCases"], Recovered = value[f"{key}"]["RecoveredCases"],Deaths = value[f"{key}"]["Deaths"])
+        cumulative = CumulativeStats(aid = k, Confirmed = value[f"{key}"]["ConfirmedCases"], Recovered = value[f"{key}"]["RecoveredCases"],Deaths = value[f"{key}"]["Deaths"])
         cumulative.save()
         k += 1
 
 # updateCumulativeStats(getdata())
 
-def updateDeltaStats(data):
-    k = 0
+def updateDeltaStats_CumulativeStats():
+    data,k = {},0
+    data = getdata()
     for key,value in data.items():
-        index = Countries.objects.get(Q(aid = k))
-        earlier = CumulativeStats.objects.filter(Q(aid = k))
+
+        earlier_confirmed = CumulativeStats.objects.get(aid = k).Confirmed.strip().replace(',','')
+        earlier_recovered = CumulativeStats.objects.get(aid = k).Recovered.strip().replace(',','')
+        earlier_Deaths = CumulativeStats.objects.get(aid = k).Deaths.strip().replace(',','')
+
+        latest_confirmed = value[f"{key}"]["ConfirmedCases"].strip().replace(',','')
+        latest_recovered = value[f"{key}"]["RecoveredCases"].strip().replace(',','')
+        latest_Deaths = value[f"{key}"]["Deaths"].strip().replace(',','')
+
+        deltastats = DeltaStats(aid = k, Active = str(int(latest_confirmed) - int(earlier_confirmed)), Death = str(int(latest_Deaths) - int(earlier_Deaths)) , Recovered = str(int(latest_recovered) - int(earlier_recovered)))
+        deltastats.save()
+
+        cumulative = CumulativeStats(aid = k, Confirmed = latest_confirmed, Recovered = latest_recovered,Deaths = latest_Deaths)
+        cumulative.save()
+
+        k += 1
+
+updateDeltaStats_CumulativeStats()
+
+
+
+
+
+
+
 
 
 
