@@ -75,6 +75,66 @@ source = {
         "source" : "https://www.worldometers.info/coronavirus/country/qatar/",
         "type" : "HTML"
         },
+        11 : {
+        "Country" : "South Korea",
+        "Country_Code" : "SKR",
+        "source" : "https://www.worldometers.info/coronavirus/country/south-korea/",
+        "type" : "HTML"
+        },
+        12 : {
+        "Country" : "Afghanistan",
+        "Country_Code" : "SKR",
+        "source" : "https://www.worldometers.info/coronavirus/country/afghanistan/",
+        "type" : "HTML"
+        },
+        13 : {
+        "Country" : "Israel",
+        "Country_Code" : "SKR",
+        "source" : "https://www.worldometers.info/coronavirus/country/Israel/",
+        "type" : "HTML"
+        },
+        14 : {
+        "Country" : "Maldives",
+        "Country_Code" : "SKR",
+        "source" : "https://www.worldometers.info/coronavirus/country/Maldives/",
+        "type" : "HTML"
+        },
+        15 : {
+        "Country" : "Oman",
+        "Country_Code" : "SKR",
+        "source" : "https://www.worldometers.info/coronavirus/country/Oman/",
+        "type" : "HTML"
+        },
+        16 : {
+        "Country" : "Laos",
+        "Country_Code" : "SKR",
+        "source" : "https://www.worldometers.info/coronavirus/country/Laos/",
+        "type" : "HTML"
+        },
+        17 : {
+        "Country" : "Syria",
+        "Country_Code" : "SKR",
+        "source" : "https://www.worldometers.info/coronavirus/country/Syria/",
+        "type" : "HTML"
+        },
+        18 : {
+        "Country" : "Yemen",
+        "Country_Code" : "SKR",
+        "source" : "https://www.worldometers.info/coronavirus/country/Yemen/",
+        "type" : "HTML"
+        },
+        19 : {
+        "Country" : "Jordan",
+        "Country_Code" : "SKR",
+        "source" : "https://www.worldometers.info/coronavirus/country/Jordan/",
+        "type" : "HTML"
+        },
+        20 : {
+        "Country" : "Mongolia",
+        "Country_Code" : "SKR",
+        "source" : "https://www.worldometers.info/coronavirus/country/Mongolia/",
+        "type" : "HTML"
+        }
 }
 
 def getHTMLDoc(url):
@@ -134,37 +194,47 @@ def updateCountries(Source):
 
 # updateCountries(source)
     
-def updateCumulativeStats(data):
+def earlierCumulativeStats(data):
     k = 0
     for key,value in data.items():
-        cumulative = CumulativeStats(aid = k, Confirmed = value[f"{key}"]["ConfirmedCases"], Recovered = value[f"{key}"]["RecoveredCases"],Deaths = value[f"{key}"]["Deaths"])
+        cumulative = CumulativeStats(aid = k, Country = key, Confirmed = value[f"{key}"]["ConfirmedCases"], Recovered = value[f"{key}"]["RecoveredCases"],Deaths = value[f"{key}"]["Deaths"])
         cumulative.save()
         k += 1
+        
 
-# updateCumulativeStats(getdata())
+# earlierCumulativeStats(getdata())
 
 def updateDeltaStats_CumulativeStats():
-    data,k = {},0
+    data = {}
     data = getdata()
+    api_data = {}
     for key,value in data.items():
 
-        earlier_confirmed = CumulativeStats.objects.get(aid = k).Confirmed.strip().replace(',','')
-        earlier_recovered = CumulativeStats.objects.get(aid = k).Recovered.strip().replace(',','')
-        earlier_Deaths = CumulativeStats.objects.get(aid = k).Deaths.strip().replace(',','')
+        earlier_confirmed = CumulativeStats.objects.get(Country = key).Confirmed.strip().replace(',','')
+        earlier_recovered = CumulativeStats.objects.get(Country = key).Recovered.strip().replace(',','')
+        earlier_Deaths = CumulativeStats.objects.get(Country = key).Deaths.strip().replace(',','')
+
 
         latest_confirmed = value[f"{key}"]["ConfirmedCases"].strip().replace(',','')
         latest_recovered = value[f"{key}"]["RecoveredCases"].strip().replace(',','')
         latest_Deaths = value[f"{key}"]["Deaths"].strip().replace(',','')
 
-        deltastats = DeltaStats(aid = k, Active = str(int(latest_confirmed) - int(earlier_confirmed)), Death = str(int(latest_Deaths) - int(earlier_Deaths)) , Recovered = str(int(latest_recovered) - int(earlier_recovered)))
+        Delta_recoverd = str(int(latest_recovered) - int(earlier_recovered))
+        Delta_active = str(int(latest_confirmed) - int(earlier_confirmed))
+        Delta_deaths = str(int(latest_Deaths) - int(earlier_Deaths))
+
+        api_data[key] = {"CumulativeConfirmed" : latest_confirmed, "CumulativeRecovered":latest_recovered, "CumulativeDeaths":latest_Deaths,"Delta_active":Delta_active, "Delata_Deaths" :Delta_deaths,"Delta_Recovered":Delta_recoverd}
+
+        deltastats = DeltaStats(Country = key, Active = Delta_active, Death = Delta_deaths, Recovered = Delta_recoverd,Latest_Confirmed = latest_confirmed, Latest_Recovered = latest_recovered,Latest_Deaths = latest_Deaths)
         deltastats.save()
 
-        cumulative = CumulativeStats(aid = k, Confirmed = latest_confirmed, Recovered = latest_recovered,Deaths = latest_Deaths)
-        cumulative.save()
+        earlierCumulativeStats(data)
 
-        k += 1
+    return api_data
 
-updateDeltaStats_CumulativeStats()
+        
+
+# updateDeltaStats_CumulativeStats() 
 
 
 
