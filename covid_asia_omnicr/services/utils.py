@@ -223,7 +223,7 @@ def updateDeltaStats_CumulativeStats():
         Delta_active = str(int(latest_confirmed) - int(earlier_confirmed))
         Delta_deaths = str(int(latest_Deaths) - int(earlier_Deaths))
 
-        api_data[key] = {"CumulativeConfirmed" : latest_confirmed, "CumulativeRecovered":latest_recovered, "CumulativeDeaths":latest_Deaths,"Delta_active":Delta_active, "Delata_Deaths" :Delta_deaths,"Delta_Recovered":Delta_recoverd}
+        api_data[key] = {"CumulativeConfirmed" : latest_confirmed, "CumulativeRecovered":latest_recovered, "CumulativeDeaths":latest_Deaths,"Delta_active":Delta_active, "Delta_Deaths" :Delta_deaths,"Delta_Recovered":Delta_recoverd}
 
         deltastats = DeltaStats(Country = key, Active = Delta_active, Death = Delta_deaths, Recovered = Delta_recoverd,Latest_Confirmed = latest_confirmed, Latest_Recovered = latest_recovered,Latest_Deaths = latest_Deaths)
         deltastats.save()
