@@ -6,7 +6,7 @@ from covid_asia_omnicr.models import Countries
 from covid_asia_omnicr.models import DeltaStats
 from django.db.models import Q
 
-
+# This be de dynamically called, and Database can be used to Store this data
 source = {
         0:{
         "Country" : "India",
