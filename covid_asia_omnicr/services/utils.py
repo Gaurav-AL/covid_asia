@@ -138,43 +138,55 @@ source = {
 }
 
 def getHTMLDoc(url):
-    response = requests.get(url)
-    return response.text
+    try:
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        return response.text
+    except requests.RequestException:
+        return None
 
 def getWExtractedData(country,url):
-    value = []
-    code_html =  bs(getHTMLDoc(url), 'html.parser')
+    html_doc = getHTMLDoc(url)
+    if not html_doc:
+        return {country: {"ConfirmedCases": "N/A", "Deaths": "N/A", "RecoveredCases": "N/A", "source": url}}
+    code_html = bs(html_doc, 'html.parser')
     all_div = code_html.find_all("div", {"id": "maincounter-wrap"})
-    for x in range(len(all_div)-1):
+    if len(all_div) < 3:
+        return {country: {"ConfirmedCases": "N/A", "Deaths": "N/A", "RecoveredCases": "N/A", "source": url}}
+    value = []
+    for x in range(3):
         spn = all_div[x].find("span")
-        value.append(spn.text)
-    return {country:{"ConfirmedCases":value[0],"Deaths":value[1],"RecoveredCases":value[2]}}
+        value.append(spn.text if spn else "N/A")
+    return {country: {"ConfirmedCases": value[0], "Deaths": value[1], "RecoveredCases": value[2], "source": url}}
 
 def getIExtractedData(country,url):
-    value = []
-    code_html = bs(getHTMLDoc(url),'html.parser')
+    html_doc = getHTMLDoc(url)
+    if not html_doc:
+        return {country: {"ConfirmedCases": "N/A", "Deaths": "N/A", "RecoveredCases": "N/A", "source": url}}
+    code_html = bs(html_doc, 'html.parser')
     confirmed_cases = code_html.find("li", {"class": "bg-blue"})
-    recovered_cases = code_html.find("li",{"class":"bg-green"})
-    deaths = code_html.find("li",{"class":"bg-red"})
-    
-    confirmed_cases = confirmed_cases.find_all("strong",{"class":"mob-hide"})
-    recovered_cases = recovered_cases.find_all("strong",{"class":"mob-hide"})
-    deaths = deaths.find_all("strong",{"class":"mob-hide"})
+    recovered_cases = code_html.find("li", {"class": "bg-green"})
+    deaths = code_html.find("li", {"class": "bg-red"})
 
-    cc,rc,dt = 0,0,0
-    for x in confirmed_cases:
-        if(re.search("[0-9]",x.text)):
-            cc = x.text.split('\xa0')[0]
-    
-    for x in recovered_cases:
-        if(re.search("[0-9]",x.text)):
-            rc = x.text.split('\xa0')[0]
-    
-    for x in deaths:
-        if(re.search("[0-9]",x.text)):
-            dt = x.text.split('\xa0')[0]
-        
-    return {country:{"ConfirmedCases":cc,"Deaths":dt,"RecoveredCases":rc}}
+    if not confirmed_cases or not recovered_cases or not deaths:
+        return {country: {"ConfirmedCases": "N/A", "Deaths": "N/A", "RecoveredCases": "N/A", "source": url}}
+
+    confirmed_list = confirmed_cases.find_all("strong", {"class": "mob-hide"})
+    recovered_list = recovered_cases.find_all("strong", {"class": "mob-hide"})
+    deaths_list = deaths.find_all("strong", {"class": "mob-hide"})
+
+    cc = extract_number(confirmed_list)
+    rc = extract_number(recovered_list)
+    dt = extract_number(deaths_list)
+
+    return {country: {"ConfirmedCases": cc, "Deaths": dt, "RecoveredCases": rc, "source": url}}
+
+def extract_number(elements):
+    for x in elements:
+        text = x.text.strip()
+        if re.search(r"[0-9]", text):
+            return text.split('\xa0')[0]
+    return "0"
     
 
 def getdata():
@@ -205,27 +217,47 @@ def earlierCumulativeStats(data):
 # earlierCumulativeStats(getdata())
 
 def updateDeltaStats_CumulativeStats():
-    data = {}
     data = getdata()
     api_data = {}
-    for key,value in data.items():
+    for key, value in data.items():
+        try:
+            cumulative_obj = CumulativeStats.objects.get(Country=key)
+            earlier_confirmed = cumulative_obj.Confirmed.strip().replace(',', '')
+            earlier_recovered = cumulative_obj.Recovered.strip().replace(',', '')
+            earlier_Deaths = cumulative_obj.Deaths.strip().replace(',', '')
+        except CumulativeStats.DoesNotExist:
+            earlier_confirmed = earlier_recovered = earlier_Deaths = "0"
 
-        earlier_confirmed = CumulativeStats.objects.get(Country = key).Confirmed.strip().replace(',','')
-        earlier_recovered = CumulativeStats.objects.get(Country = key).Recovered.strip().replace(',','')
-        earlier_Deaths = CumulativeStats.objects.get(Country = key).Deaths.strip().replace(',','')
+        latest_confirmed = value[key]["ConfirmedCases"].strip().replace(',', '')
+        latest_recovered = value[key]["RecoveredCases"].strip().replace(',', '')
+        latest_Deaths = value[key]["Deaths"].strip().replace(',', '')
 
+        try:
+            Delta_recoverd = str(int(latest_recovered) - int(earlier_recovered))
+            Delta_active = str(int(latest_confirmed) - int(earlier_confirmed))
+            Delta_deaths = str(int(latest_Deaths) - int(earlier_Deaths))
+        except ValueError:
+            Delta_recoverd = Delta_active = Delta_deaths = "0"
 
-        latest_confirmed = value[f"{key}"]["ConfirmedCases"].strip().replace(',','')
-        latest_recovered = value[f"{key}"]["RecoveredCases"].strip().replace(',','')
-        latest_Deaths = value[f"{key}"]["Deaths"].strip().replace(',','')
+        api_data[key] = {
+            "CumulativeConfirmed": latest_confirmed,
+            "CumulativeRecovered": latest_recovered,
+            "CumulativeDeaths": latest_Deaths,
+            "Delta_active": Delta_active,
+            "Delta_Deaths": Delta_deaths,
+            "Delta_Recovered": Delta_recoverd,
+            "source": value[key]["source"]
+        }
 
-        Delta_recoverd = str(int(latest_recovered) - int(earlier_recovered))
-        Delta_active = str(int(latest_confirmed) - int(earlier_confirmed))
-        Delta_deaths = str(int(latest_Deaths) - int(earlier_Deaths))
-
-        api_data[key] = {"CumulativeConfirmed" : latest_confirmed, "CumulativeRecovered":latest_recovered, "CumulativeDeaths":latest_Deaths,"Delta_active":Delta_active, "Delta_Deaths" :Delta_deaths,"Delta_Recovered":Delta_recoverd}
-
-        deltastats = DeltaStats(Country = key, Active = Delta_active, Death = Delta_deaths, Recovered = Delta_recoverd,Latest_Confirmed = latest_confirmed, Latest_Recovered = latest_recovered,Latest_Deaths = latest_Deaths)
+        deltastats = DeltaStats(
+            Country=key,
+            Active=Delta_active,
+            Death=Delta_deaths,
+            Recovered=Delta_recoverd,
+            Latest_Confirmed=latest_confirmed,
+            Latest_Recovered=latest_recovered,
+            Latest_Deaths=latest_Deaths
+        )
         deltastats.save()
 
         earlierCumulativeStats(data)
