@@ -216,8 +216,25 @@ def earlierCumulativeStats(data):
 
 # earlierCumulativeStats(getdata())
 
+def getNews():
+    url = "https://www.worldometers.info/coronavirus/"
+    html_doc = getHTMLDoc(url)
+    if not html_doc:
+        return []
+    soup = bs(html_doc, 'html.parser')
+    news_items = soup.find_all('div', class_='news_post')
+    news_list = []
+    for item in news_items[:5]:  # Get top 5 news
+        title_tag = item.find('a')
+        if title_tag:
+            title = title_tag.text.strip()
+            link = "https://www.worldometers.info" + title_tag['href'] if title_tag.get('href') else ""
+            news_list.append({"title": title, "link": link})
+    return news_list
+
 def updateDeltaStats_CumulativeStats():
     data = getdata()
+    news = getNews()
     api_data = {}
     for key, value in data.items():
         try:
@@ -262,6 +279,7 @@ def updateDeltaStats_CumulativeStats():
 
         earlierCumulativeStats(data)
 
+    api_data["news"] = news
     return api_data
 
         

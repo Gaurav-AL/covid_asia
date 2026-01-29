@@ -10,6 +10,9 @@ from django.conf import settings
 
 # Create your views here.
 
+def home(request):
+    return render(request, 'index.html')
+
 class Result(APIView):
     @swagger_auto_schema(
         operation_description="Get latest COVID-19 data for Asian countries (cached for 30 seconds)",

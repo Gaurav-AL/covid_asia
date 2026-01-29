@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COVID-19 Asia Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #333;
+            line-height: 1.6;
+        }
+        h1 {
+            text-align: center;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            animation: fadeIn 1s ease-in;
+        }
+        h2 {
+            font-weight: 500;
+            color: #34495e;
+        }
+        .chart-container {
+            width: 100%;
+            height: 300px;
+            margin-bottom: 20px;
+            transition: transform 0.3s ease;
+        }
+        .chart-container:hover {
+            transform: scale(1.02);
+        }
+        .chart-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: box-shadow 0.3s ease;
+            animation: slideIn 0.5s ease-out forwards;
+            opacity: 0;
+        }
+        .chart-item:hover {
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+        }
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 15px;
+        }
+        .news-section {
+            margin-top: 40px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            background: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 1s ease-in 0.5s both;
+        }
+        .news-item {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-left: 4px solid #007bff;
+            background: #f8f9fa;
+            border-radius: 5px;
+            transition: background 0.3s ease;
+        }
+        .news-item:hover {
+            background: #e9ecef;
+        }
+        .news-item a {
+            text-decoration: none;
+            color: #007bff;
+            font-weight: 400;
+        }
+        .news-item a:hover {
+            text-decoration: underline;
+        }
+        .loading {
+            text-align: center;
+            font-size: 18px;
+            color: #666;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        h1 {
+            text-align: center;
+        }
+        h2 {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>COVID-19 Cases in Asia</h1>
+    <div id="loading" class="loading">Loading data and charts...</div>
+    <div id="charts" class="charts-grid" style="display: none;">
+        <!-- Charts will be inserted here -->
+    </div>
+    <div id="news" class="news-section" style="display: none;">
+        <h2>Latest COVID-19 News</h2>
+        <div id="news-list">
+            <!-- News will be inserted here -->
+        </div>
+    </div>
+
+    <script>
+        async function fetchData() {
+            const response = await fetch('/cases');
+            const data = await response.json();
+            return data.Data;
+        }
+
+        const colorPalette = [
+            { bg: 'rgba(255, 99, 132, 0.2)', border: 'rgba(255, 99, 132, 1)' }, // Red
+            { bg: 'rgba(54, 162, 235, 0.2)', border: 'rgba(54, 162, 235, 1)' }, // Blue
+            { bg: 'rgba(255, 205, 86, 0.2)', border: 'rgba(255, 205, 86, 1)' },  // Yellow
+            { bg: 'rgba(75, 192, 192, 0.2)', border: 'rgba(75, 192, 192, 1)' }, // Teal
+            { bg: 'rgba(153, 102, 255, 0.2)', border: 'rgba(153, 102, 255, 1)' }, // Purple
+            { bg: 'rgba(255, 159, 64, 0.2)', border: 'rgba(255, 159, 64, 1)' }   // Orange
+        ];
+
+        let colorIndex = 0;
+
+        function createChart(container, title, labels, data) {
+            const chartDiv = document.createElement('div');
+            chartDiv.className = 'chart-item';
+            const h2 = document.createElement('h2');
+            h2.textContent = title;
+            chartDiv.appendChild(h2);
+            const ctx = document.createElement('canvas');
+            ctx.className = 'chart-container';
+            chartDiv.appendChild(ctx);
+            container.appendChild(chartDiv);
+            const color = colorPalette[colorIndex % colorPalette.length];
+            colorIndex++;
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: title,
+                        data: data,
+                        backgroundColor: color.bg,
+                        borderColor: color.border,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const loading = document.getElementById('loading');
+            const chartsDiv = document.getElementById('charts');
+            const newsDiv = document.getElementById('news');
+
+            try {
+                const covidData = await fetchData();
+                const countries = Object.keys(covidData);
+                if (countries.includes('news')) countries.splice(countries.indexOf('news'), 1); // Remove news from countries
+
+                const attributes = [
+                    { key: 'CumulativeConfirmed', title: 'Cumulative Confirmed Cases' },
+                    { key: 'CumulativeRecovered', title: 'Cumulative Recovered Cases' },
+                    { key: 'CumulativeDeaths', title: 'Cumulative Deaths' },
+                    { key: 'Delta_active', title: 'New Active Cases' },
+                    { key: 'Delta_Deaths', title: 'New Deaths' },
+                    { key: 'Delta_Recovered', title: 'New Recovered Cases' }
+                ];
+
+                // Hide loading and show charts with animation
+                loading.style.display = 'none';
+                chartsDiv.style.display = 'grid';
+
+                // Stagger chart creation
+                attributes.forEach((attr, index) => {
+                    setTimeout(() => {
+                        const values = countries.map(country => parseInt(covidData[country][attr.key] || 0));
+                        createChart(chartsDiv, attr.title, countries, values);
+                    }, index * 300); // 300ms delay between each chart
+                });
+
+                // Show news after charts
+                setTimeout(() => {
+                    newsDiv.style.display = 'block';
+                    const newsList = document.getElementById('news-list');
+                    const newsData = covidData.news || [];
+                    if (newsData.length > 0) {
+                        newsData.forEach((item, index) => {
+                            setTimeout(() => {
+                                const newsItem = document.createElement('div');
+                                newsItem.className = 'news-item';
+                                const link = document.createElement('a');
+                                link.href = item.link;
+                                link.target = '_blank';
+                                link.textContent = item.title;
+                                newsItem.appendChild(link);
+                                newsList.appendChild(newsItem);
+                            }, index * 100);
+                        });
+                    } else {
+                        newsList.textContent = 'No news available.';
+                    }
+                }, attributes.length * 300 + 500); // After all charts
+
+            } catch (error) {
+                loading.textContent = 'Error loading data. Please try again.';
+                console.error(error);
+            }
+        });
+    </script>
+</body>
+</html>
